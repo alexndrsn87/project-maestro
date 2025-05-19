@@ -8,7 +8,7 @@ const Hero = () => {
     <div className="hero-gradient text-white py-20 md:py-32">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-6">Manage Your Five-A-Side Games Like a Pro</h1>
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-6">Manage Your Five-A-Side Games Like an Absolute Pro</h1>
           <p className="text-lg md:text-xl mb-8">
             Stop struggling with WhatsApp groups and spreadsheets. FiveASide Manager takes the hassle out of organizing games, balancing teams, and collecting fees.
           </p>
