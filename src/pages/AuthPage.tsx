@@ -1,10 +1,11 @@
 // src/pages/AuthPage.tsx
 import React from "react"
+import AuthForm from "@/components/AuthForm"
 
 const AuthPage = () => {
   return (
-    <div style={{ fontSize: "2rem", padding: "2rem", textAlign: "center", color: "red" }}>
-      TEST PAGE IS RENDERING LOCALLY!
+    <div className="min-h-screen flex items-center justify-center bg-light-gray px-4">
+      <AuthForm />
     </div>
   )
 }
