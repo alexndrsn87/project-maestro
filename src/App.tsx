@@ -10,7 +10,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/signup" element={<AuthPage />} />
         <Route path="/setup-profile" element={<SetupProfile />} />
         <Route path="/profile" element={<PlayerProfile />} />
       </Routes>
