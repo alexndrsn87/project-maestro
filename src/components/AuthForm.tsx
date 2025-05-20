@@ -1,90 +1,155 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
+import { useNavigate } from "react-router-dom"
 
 export default function AuthForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [isLogin, setIsLogin] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [position, setPosition] = useState("")
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    // Check for active session on load
-    const getSession = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
+  const handleSignUp = async () => {
+    setError("")
+
+    // Basic form validation
+    if (!email || !password || !confirmPassword || !fullName || !position) {
+      setError("All fields are required.")
+      return
     }
-    getSession()
-  }, [])
 
-  const handleSubmit = async () => {
-    setError('')
-    setSuccess('')
-    if (isLogin) {
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
-      else {
-        setSuccess('Logged in!')
-        setUser(data.user)
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.")
+      return
+    }
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password
+    })
+
+    if (signUpError) {
+      setError(signUpError.message)
+      return
+    }
+
+    const userId = signUpData.user?.id
+    if (!userId) {
+      setError("User ID not found after sign up.")
+      return
+    }
+
+    let avatarUrl = null
+
+    if (avatarFile) {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(`public/${userId}/${avatarFile.name}`, avatarFile, {
+          cacheControl: "3600",
+          upsert: true
+        })
+
+      if (uploadError) {
+        setError("Image upload failed: " + uploadError.message)
+        return
       }
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) setError(error.message)
-      else setSuccess('Check your email to confirm your sign-up!')
+
+      const { data: publicUrlData } = supabase
+        .storage
+        .from("avatars")
+        .getPublicUrl(`public/${userId}/${avatarFile.name}`)
+
+      avatarUrl = publicUrlData?.publicUrl || null
     }
-  }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-  }
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert([
+        {
+          id: userId,
+          full_name: fullName,
+          position,
+          avatar_url: avatarUrl
+        }
+      ])
 
-  if (user) {
-    return (
-      <div className="max-w-md mx-auto my-8 p-4 border rounded shadow text-center">
-        <p className="mb-2">👋 Welcome, {user.email}</p>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded"
-        >
-          Logout
-        </button>
-      </div>
-    )
+    if (profileError) {
+      setError("Profile setup failed: " + profileError.message)
+      return
+    }
+
+    navigate("/profile")
   }
 
   return (
-    <div className="max-w-md mx-auto my-8 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">{isLogin ? 'Login' : 'Sign Up'}</h2>
+    <div className="max-w-md mx-auto my-12 p-6 border rounded shadow bg-white">
+      <h2 className="text-2xl font-bold mb-6 text-center">Create Your Account</h2>
+
       <input
         type="email"
         placeholder="Email"
-        className="w-full p-2 mb-2 border rounded"
+        className="w-full p-2 mb-3 border rounded"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
+
       <input
         type="password"
         placeholder="Password"
-        className="w-full p-2 mb-2 border rounded"
+        className="w-full p-2 mb-3 border rounded"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      {error && <p className="text-red-600 mb-2">{error}</p>}
-      {success && <p className="text-green-600 mb-2">{success}</p>}
+
+      <input
+        type="password"
+        placeholder="Confirm Password"
+        className="w-full p-2 mb-3 border rounded"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+      />
+
+      <input
+        type="text"
+        placeholder="Full Name"
+        className="w-full p-2 mb-3 border rounded"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+      />
+
+      <select
+        className="w-full p-2 mb-3 border rounded"
+        value={position}
+        onChange={(e) => setPosition(e.target.value)}
+      >
+        <option value="">Select Position</option>
+        <option value="GK">Goalkeeper</option>
+        <option value="DEF">Defender</option>
+        <option value="MID">Midfielder</option>
+        <option value="ATT">Attacker</option>
+      </select>
+
+      <label className="block mb-2 font-medium text-sm text-gray-700">
+        Upload Profile Picture
+      </label>
+      <input
+        type="file"
+        accept="image/*"
+        className="mb-4"
+        onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+      />
+
+      {error && <p className="text-red-600 mb-4 text-sm">{error}</p>}
+
       <button
-        onClick={handleSubmit}
-        className="bg-green-600 text-white px-4 py-2 rounded mb-2 w-full"
+        onClick={handleSignUp}
+        className="w-full bg-action-orange hover:bg-action-orange/90 text-white py-2 rounded text-lg"
       >
-        {isLogin ? 'Login' : 'Sign Up'}
+        Sign Up
       </button>
-      <p
-        className="text-sm text-blue-600 cursor-pointer text-center"
-        onClick={() => setIsLogin(!isLogin)}
-      >
-        {isLogin ? "Need to create an account?" : "Already have an account?"}
-      </p>
     </div>
   )
 }
