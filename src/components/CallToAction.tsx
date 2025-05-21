@@ -2,8 +2,15 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CallToAction = () => {
+  const navigate = useNavigate();
+
+  const handleSignUpNow = () => {
+    navigate('/signup'); // Or your designated sign-up route
+  };
+
   return (
     <section className="py-20">
       <div className="container mx-auto px-6">
@@ -13,7 +20,10 @@ const CallToAction = () => {
             Join thousands of players and organizers who've made 5-a-side football simpler, fairer, and more fun.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button className="bg-action-orange hover:bg-action-orange/90 text-white text-lg px-6 py-6">
+            <Button 
+              className="bg-action-orange hover:bg-action-orange/90 text-white text-lg px-6 py-6"
+              onClick={handleSignUpNow}
+            >
               Sign Up Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

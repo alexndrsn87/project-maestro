@@ -2,8 +2,15 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate('/signup'); // Or your designated sign-up route
+  };
+
   return (
     <div className="hero-gradient text-white py-20 md:py-32">
       <div className="container mx-auto px-6">
@@ -13,7 +20,10 @@ const Hero = () => {
             Stop struggling with WhatsApp groups and spreadsheets. FiveASide Manager takes the hassle out of organizing games, balancing teams, and collecting fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button className="bg-action-orange hover:bg-action-orange/90 text-white text-lg px-6 py-6">
+            <Button 
+              className="bg-action-orange hover:bg-action-orange/90 text-white text-lg px-6 py-6"
+              onClick={handleGetStarted}
+            >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
